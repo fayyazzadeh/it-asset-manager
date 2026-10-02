@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.db import SessionLocal
-from app.models import AlertNotification, NotificationChannel, NotificationRecipient, NotificationTemplate
+from app.models import AlertNotification, NotificationChannel, NotificationPolicy, NotificationRecipient, NotificationTemplate
 from app.workers.celery_app import celery_app
 
 
@@ -42,7 +42,8 @@ def deliver_pending_notifications(limit: int = 100) -> int:
             select(AlertNotification, NotificationChannel, NotificationRecipient, NotificationTemplate)
             .join(NotificationChannel, NotificationChannel.id == AlertNotification.channel_id)
             .outerjoin(NotificationRecipient, NotificationRecipient.id == AlertNotification.recipient_id)
-            .join(NotificationTemplate, NotificationTemplate.id == AlertNotification.policy_id)
+            .join(NotificationPolicy, NotificationPolicy.id == AlertNotification.policy_id)
+            .join(NotificationTemplate, NotificationTemplate.id == NotificationPolicy.template_id)
             .where(AlertNotification.status == "PENDING")
             .order_by(AlertNotification.created_at)
             .limit(limit)
@@ -56,7 +57,6 @@ def deliver_pending_notifications(limit: int = 100) -> int:
                 if recipient is None or not recipient.email:
                     raise RuntimeError("notification recipient has no email address")
 
-                # Delivery context is intentionally small and stable for v1.
                 subject = _render(template.subject_template, {"alert_id": notification.alert_id})
                 body = _render(template.body_template, {"alert_id": notification.alert_id})
                 _send_email(recipient.email, subject, body)
