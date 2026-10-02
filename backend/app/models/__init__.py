@@ -6,7 +6,7 @@ from app.models.inventory import (
     Software, StorageDevice, StoragePartition,
 )
 from app.models.operations import (
-    AssetChangeHistory, AssetCustody, AssetIdentityChange, AssetLifecycleHistory,
+    AssetChangeHistory, AssetCustody, AssetIdentityChange, AssetLifecycleHistory, RefreshToken, Role, UserRole,
     AssetPhoto, AuditLog, CustomAssetField, Department, User,
 )
 
@@ -15,6 +15,6 @@ __all__ = [
     "DiscoveryRun", "DiscoveryObservation", "Agent", "AgentToken",
     "Hardware", "HardwareProcessor", "MemoryModule", "StorageDevice", "StoragePartition", "HardwareGpu",
     "OperatingSystem", "Software", "AssetSoftware", "ServiceDefinition", "AssetService", "AssetRelationship",
-    "User", "Department", "AssetCustody", "AssetPhoto", "AssetLifecycleHistory", "AuditLog",
+    "User", "Role", "UserRole", "RefreshToken", "Department", "AssetCustody", "AssetPhoto", "AssetLifecycleHistory", "AuditLog",
     "AssetChangeHistory", "AssetIdentityChange", "CustomAssetField",
 ]
