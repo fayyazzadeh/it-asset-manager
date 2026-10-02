@@ -39,11 +39,16 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> TokenRe
         full_name=payload.full_name,
         password_hash=hash_password(payload.password),
     )
+    existing_users = db.scalar(select(User.id).limit(1))
     db.add(user)
     db.flush()
-    role = db.scalar(select(Role).where(Role.code == "ADMIN" if db.scalar(select(User).where(User.id != user.id)) is None else "OPERATOR"))
+    role_code = "OPERATOR" if existing_users is not None else "ADMIN"
+    role = db.scalar(select(Role).where(Role.code == role_code))
     if role is None:
-        role = Role(code="ADMIN", name="Administrator")
+        role = Role(
+            code=role_code,
+            name="Administrator" if role_code == "ADMIN" else "Operator",
+        )
         db.add(role)
         db.flush()
     db.add(UserRole(user_id=user.id, role_id=role.id))
