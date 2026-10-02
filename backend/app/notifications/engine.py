@@ -11,7 +11,6 @@ from app.models import (
     NotificationPolicy,
     NotificationPolicyChannel,
     NotificationRecipient,
-    NotificationTemplate,
 )
 
 
@@ -42,19 +41,7 @@ def enqueue_alert_notifications(alert_id: int) -> int:
             ).all()
 
             for channel in channels:
-                recipients = db.scalars(
-                    select(NotificationRecipient)
-                    .join(NotificationGroupMember, NotificationGroupMember.recipient_id == NotificationRecipient.id)
-                    .where(
-                        NotificationGroupMember.group_id.in_(
-                            select(NotificationPolicyChannel.policy_id).where(NotificationPolicyChannel.policy_id == policy.id)
-                        ),
-                        NotificationRecipient.enabled.is_(True),
-                    )
-                ).all()
-                # Recipient groups are resolved by policy configuration in the next iteration.
-                # Keep channel/policy records enqueueable even when no recipient group exists.
-                if not recipients:
+                if policy.recipient_group_id is None:
                     db.add(AlertNotification(
                         alert_id=alert.id,
                         policy_id=policy.id,
@@ -64,5 +51,27 @@ def enqueue_alert_notifications(alert_id: int) -> int:
                         created_at=now,
                     ))
                     created += 1
+                    continue
+
+                recipients = db.scalars(
+                    select(NotificationRecipient)
+                    .join(NotificationGroupMember, NotificationGroupMember.recipient_id == NotificationRecipient.id)
+                    .where(
+                        NotificationGroupMember.group_id == policy.recipient_group_id,
+                        NotificationRecipient.enabled.is_(True),
+                    )
+                ).all()
+
+                for recipient in recipients:
+                    db.add(AlertNotification(
+                        alert_id=alert.id,
+                        policy_id=policy.id,
+                        channel_id=channel.id,
+                        recipient_id=recipient.id,
+                        status="PENDING",
+                        created_at=now,
+                    ))
+                    created += 1
+
         db.commit()
     return created
