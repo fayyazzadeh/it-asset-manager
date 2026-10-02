@@ -16,6 +16,11 @@ def upgrade() -> None:
     op.create_table("roles",
         sa.Column("id",sa.BigInteger(),primary_key=True), sa.Column("code",sa.String(50),nullable=False,unique=True),
         sa.Column("name",sa.String(100),nullable=False), sa.Column("description",sa.Text()))
+    op.bulk_insert(sa.table("roles", sa.column("code",sa.String()), sa.column("name",sa.String()), sa.column("description",sa.Text())), [
+        {"code":"ADMIN","name":"Administrator","description":"Full platform administration"},
+        {"code":"OPERATOR","name":"Operator","description":"Operational asset and monitoring access"},
+        {"code":"VIEWER","name":"Viewer","description":"Read-only access"},
+    ])
     op.create_table("user_roles",
         sa.Column("id",sa.BigInteger(),primary_key=True), sa.Column("user_id",sa.BigInteger(),sa.ForeignKey("users.id",ondelete="CASCADE"),nullable=False),
         sa.Column("role_id",sa.BigInteger(),sa.ForeignKey("roles.id",ondelete="CASCADE"),nullable=False),
