@@ -48,6 +48,7 @@ class Network(Base):
 class Location(Base):
     __tablename__ = "locations"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    parent_id: Mapped[int | None] = mapped_column(ForeignKey("locations.id", ondelete="RESTRICT"))
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     building: Mapped[str | None] = mapped_column(String(100))
     floor: Mapped[str | None] = mapped_column(String(50))
@@ -62,6 +63,8 @@ class Asset(Base):
     __tablename__ = "assets"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     asset_tag: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    qr_code: Mapped[str | None] = mapped_column(String(255), unique=True)
+    barcode: Mapped[str | None] = mapped_column(String(255), unique=True)
     asset_type_id: Mapped[int] = mapped_column(ForeignKey("asset_types.id", ondelete="RESTRICT"), nullable=False)
     asset_subtype_id: Mapped[int | None] = mapped_column(ForeignKey("asset_subtypes.id", ondelete="RESTRICT"))
     network_id: Mapped[int | None] = mapped_column(ForeignKey("networks.id", ondelete="RESTRICT"))
