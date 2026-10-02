@@ -6,7 +6,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.security import get_current_user, hash_refresh_token, require_roles
+from app.core.security import hash_refresh_token, require_roles
 from app.db import get_db
 from app.discovery.connectors import ManualConnector
 from app.discovery.service import DiscoveryService
@@ -82,16 +82,46 @@ def _get_agent_from_token(
 
 @router.post("/agents/enroll", response_model=AgentEnrollResponse)
 def enroll_agent(payload: AgentEnrollRequest, db: Session = Depends(get_db)) -> AgentEnrollResponse:
-    raw_enrollment = payload.agent_id
-    enrollment_hash = hash_refresh_token(raw_enrollment)
     enrollment = db.scalar(
         select(EnrollmentToken).where(
-            EnrollmentToken.token_hash == enrollment_hash,
+            EnrollmentToken.token_hash == hash_refresh_token(payload.enrollment_token),
             EnrollmentToken.used_at.is_(None),
             (EnrollmentToken.expires_at.is_(None) | (EnrollmentToken.expires_at > datetime.now(timezone.utc))),
         )
     )
-    raise HTTPException(status_code=401, detail="invalid enrollment token")
+    if enrollment is None:
+        raise HTTPException(status_code=401, detail="invalid enrollment token")
+    if db.scalar(select(Agent).where(Agent.agent_id == payload.agent_id)):
+        raise HTTPException(status_code=409, detail="agent_id already enrolled")
+
+    now = datetime.now(timezone.utc)
+    agent = Agent(
+        asset_id=enrollment.asset_id,
+        agent_id=payload.agent_id,
+        version=payload.version,
+        status="ACTIVE",
+        last_seen=now,
+        ip_address=payload.ip_address,
+        os=payload.os,
+        installed_at=now,
+    )
+    db.add(agent)
+    db.flush()
+
+    credential = secrets.token_urlsafe(48)
+    db.add(AgentToken(
+        agent_id=agent.id,
+        token_hash=hash_refresh_token(credential),
+        expires_at=now + timedelta(days=30),
+        created_at=now,
+    ))
+    enrollment.used_at = now
+    db.commit()
+    return AgentEnrollResponse(
+        agent_id=agent.agent_id,
+        credential=credential,
+        asset_id=agent.asset_id,
+    )
 
 
 @router.post("/agents/heartbeat")
