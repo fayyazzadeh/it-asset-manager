@@ -115,7 +115,7 @@ class CustomAssetField(Base):
     field_name: Mapped[str] = mapped_column(String(100), nullable=False)
     field_value: Mapped[str | None] = mapped_column(Text)
     value_type: Mapped[str] = mapped_column(String(30), default="TEXT", nullable=False)
-    metadata: Mapped[dict | None] = mapped_column(JSONB)
+    field_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     __table_args__ = (UniqueConstraint("asset_id", "field_name"),)
