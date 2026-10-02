@@ -1,6 +1,4 @@
 from datetime import datetime, timedelta, timezone
-
-import jwt
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
