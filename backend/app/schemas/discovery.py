@@ -33,3 +33,7 @@ class AgentEnrollResponse(BaseModel):
 class AgentHeartbeatRequest(BaseModel):
     version: str | None = Field(default=None, max_length=50)
     ip_address: str | None = None
+
+
+class AgentObservationRequest(BaseModel):
+    fields: dict[str, object]
