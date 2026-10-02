@@ -6,10 +6,18 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.security import create_access_token, create_refresh_token, hash_password, hash_refresh_token, verify_password
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    get_current_user,
+    get_user_roles,
+    hash_password,
+    hash_refresh_token,
+    verify_password,
+)
 from app.db import get_db
 from app.models import RefreshToken, Role, User, UserRole
-from app.schemas.auth import LoginRequest, RefreshRequest, RegisterRequest, TokenResponse
+from app.schemas.auth import LoginRequest, RefreshRequest, RegisterRequest, TokenResponse, UserRead
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -61,7 +69,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse
     user = db.scalar(select(User).where(User.username == payload.username))
     if user is None or not user.is_active or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="invalid credentials")
-    roles = list(db.scalars(select(Role.code).join(UserRole, UserRole.role_id == Role.id).where(UserRole.user_id == user.id)))
+    roles = get_user_roles(user, db)
     return issue_tokens(user, roles, db)
 
 
@@ -76,5 +84,17 @@ def refresh(payload: RefreshRequest, db: Session = Depends(get_db)) -> TokenResp
     user = db.get(User, stored.user_id)
     if user is None or not user.is_active:
         raise HTTPException(status_code=401, detail="inactive user")
-    roles = list(db.scalars(select(Role.code).join(UserRole, UserRole.role_id == Role.id).where(UserRole.user_id == user.id)))
+    roles = get_user_roles(user, db)
     return issue_tokens(user, roles, db)
+
+
+@router.get("/me", response_model=UserRead)
+def me(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> UserRead:
+    return UserRead(
+        id=user.id,
+        username=user.username,
+        email=user.email,
+        full_name=user.full_name,
+        is_active=user.is_active,
+        roles=get_user_roles(user, db),
+    )
