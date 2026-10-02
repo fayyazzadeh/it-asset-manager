@@ -28,3 +28,8 @@ class AgentEnrollResponse(BaseModel):
     agent_id: str
     credential: str
     asset_id: int
+
+
+class AgentHeartbeatRequest(BaseModel):
+    version: str | None = Field(default=None, max_length=50)
+    ip_address: str | None = None
