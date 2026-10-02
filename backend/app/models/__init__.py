@@ -5,9 +5,10 @@ from app.models.inventory import (
     HardwareProcessor, MemoryModule, OperatingSystem, ServiceDefinition,
     Software, StorageDevice, StoragePartition,
 )
+from app.models.monitoring import Alert, AlertRule, Event, Metric, MetricDefinition, MonitoringProfile, MonitoringProfileMetric
 from app.models.operations import (
-    AssetChangeHistory, AssetCustody, AssetIdentityChange, AssetLifecycleHistory, RefreshToken, Role, UserRole,
-    AssetPhoto, AuditLog, CustomAssetField, Department, User,
+    AssetChangeHistory, AssetCustody, AssetIdentityChange, AssetLifecycleHistory,
+    RefreshToken, Role, UserRole, AssetPhoto, AuditLog, CustomAssetField, Department, User,
 )
 
 __all__ = [
@@ -15,6 +16,7 @@ __all__ = [
     "DiscoveryRun", "DiscoveryObservation", "Agent", "AgentToken",
     "Hardware", "HardwareProcessor", "MemoryModule", "StorageDevice", "StoragePartition", "HardwareGpu",
     "OperatingSystem", "Software", "AssetSoftware", "ServiceDefinition", "AssetService", "AssetRelationship",
-    "User", "Role", "UserRole", "RefreshToken", "Department", "AssetCustody", "AssetPhoto", "AssetLifecycleHistory", "AuditLog",
-    "AssetChangeHistory", "AssetIdentityChange", "CustomAssetField",
+    "MetricDefinition", "MonitoringProfile", "MonitoringProfileMetric", "Metric", "Event", "AlertRule", "Alert",
+    "User", "Role", "UserRole", "RefreshToken", "Department", "AssetCustody", "AssetPhoto",
+    "AssetLifecycleHistory", "AuditLog", "AssetChangeHistory", "AssetIdentityChange", "CustomAssetField",
 ]
