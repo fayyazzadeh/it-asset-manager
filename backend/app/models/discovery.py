@@ -69,6 +69,17 @@ class Agent(Base):
     installed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class EnrollmentToken(Base):
+    __tablename__ = "enrollment_tokens"
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    asset_id: Mapped[int] = mapped_column(ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+
+
 class AgentToken(Base):
     __tablename__ = "agent_tokens"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
