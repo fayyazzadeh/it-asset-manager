@@ -1,5 +1,5 @@
 from app.models.asset import Asset, AssetIdentifier, AssetNetworkInterface, AssetSubtype, AssetType, Location, Network
-from app.models.discovery import Agent, AgentToken, DiscoveryObservation, DiscoveryRun
+from app.models.discovery import Agent, AgentToken, DiscoveryObservation, DiscoveryRun, EnrollmentToken
 from app.models.inventory import (
     AssetRelationship, AssetService, AssetSoftware, Hardware, HardwareGpu,
     HardwareProcessor, MemoryModule, OperatingSystem, ServiceDefinition,
@@ -14,7 +14,7 @@ from app.models.operations import (
 
 __all__ = [
     "Asset", "AssetIdentifier", "AssetNetworkInterface", "AssetSubtype", "AssetType", "Location", "Network",
-    "DiscoveryRun", "DiscoveryObservation", "Agent", "AgentToken",
+    "DiscoveryRun", "DiscoveryObservation", "Agent", "AgentToken", "EnrollmentToken",
     "Hardware", "HardwareProcessor", "MemoryModule", "StorageDevice", "StoragePartition", "HardwareGpu",
     "OperatingSystem", "Software", "AssetSoftware", "ServiceDefinition", "AssetService", "AssetRelationship",
     "MetricDefinition", "MonitoringProfile", "MonitoringProfileMetric", "Metric", "Event", "AlertRule", "Alert",
