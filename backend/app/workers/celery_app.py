@@ -6,7 +6,7 @@ celery_app = Celery(
     "it_asset_manager",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=["app.monitoring.tasks"],
+    include=["app.monitoring.tasks", "app.notifications.tasks"],
 )
 
 celery_app.conf.task_default_queue = "default"
@@ -20,6 +20,10 @@ celery_app.conf.beat_schedule = {
     },
     "collect-agent-heartbeat-every-minute": {
         "task": "monitoring.collect_agent_heartbeat",
+        "schedule": 60.0,
+    },
+    "deliver-notifications-every-minute": {
+        "task": "notifications.deliver_pending",
         "schedule": 60.0,
     },
 }
