@@ -46,6 +46,20 @@ services:
       redis:
         condition: service_started
 
+  beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A app.workers.celery_app.celery_app beat --loglevel=INFO
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-it_asset_manager}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-it_asset_manager}
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
   frontend:
     build:
       context: ./frontend
