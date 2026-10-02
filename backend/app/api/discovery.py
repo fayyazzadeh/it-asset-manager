@@ -15,6 +15,7 @@ from app.schemas.discovery import (
     AgentEnrollRequest,
     AgentEnrollResponse,
     AgentHeartbeatRequest,
+    AgentObservationRequest,
     EnrollmentTokenCreate,
     EnrollmentTokenResponse,
     ManualDiscoveryRequest,
@@ -122,6 +123,48 @@ def enroll_agent(payload: AgentEnrollRequest, db: Session = Depends(get_db)) -> 
         credential=credential,
         asset_id=agent.asset_id,
     )
+
+    
+@router.post("/agents/observations")
+def agent_observation(
+    payload: AgentObservationRequest,
+    credentials: HTTPAuthorizationCredentials | None = Depends(agent_bearer),
+    db: Session = Depends(get_db),
+) -> dict:
+    agent = _get_agent_from_token(credentials, db)
+    now = datetime.now(timezone.utc)
+    normalized = service.normalize_observation(
+        ManualConnector(payload.fields).collect()[0]
+    )
+    from app.models import DiscoveryObservation
+
+    observation = DiscoveryObservation(
+        source="AGENT",
+        observed_at=now,
+        agent_id=agent.agent_id,
+        matched_asset_id=agent.asset_id,
+        confidence=100,
+        match_status="MATCHED",
+        raw_data=normalized,
+        ip_address=payload.fields.get("ip_address"),
+        mac_address=payload.fields.get("mac_address"),
+        hostname=payload.fields.get("hostname"),
+        fqdn=payload.fields.get("fqdn"),
+        computer_name=payload.fields.get("computer_name"),
+        serial_number=payload.fields.get("serial_number"),
+        bios_uuid=payload.fields.get("bios_uuid"),
+        machine_uuid=payload.fields.get("machine_uuid"),
+        manufacturer=payload.fields.get("manufacturer"),
+        model=payload.fields.get("model"),
+        os_name=payload.fields.get("os_name"),
+        os_version=payload.fields.get("os_version"),
+        ad_domain=payload.fields.get("ad_domain"),
+        ad_computer_name=payload.fields.get("ad_computer_name"),
+    )
+    agent.last_seen = now
+    db.add(observation)
+    db.commit()
+    return {"status": "accepted", "asset_id": agent.asset_id, "observed_at": now.isoformat()}
 
 
 @router.post("/agents/heartbeat")
