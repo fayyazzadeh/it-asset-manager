@@ -73,7 +73,7 @@ def test_registration_is_disabled_without_bootstrap_flag(monkeypatch):
     try:
         response = TestClient(app).post(
             "/api/auth/register",
-            json={"username": "first-admin", "email": "admin@example.test", "password": "long-enough-test-password"},
+            json={"username": "first-admin", "email": "admin@example.com", "password": "long-enough-test-password"},
         )
     finally:
         app.dependency_overrides.clear()
