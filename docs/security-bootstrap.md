@@ -17,7 +17,7 @@ Registration is disabled unless `BOOTSTRAP_ADMIN_ENABLED=true`. The flag only pe
 
 1. Configure the production database and a strong `JWT_SECRET`.
 2. Temporarily set `BOOTSTRAP_ADMIN_ENABLED=true` in the API service environment.
-3. Start/restart the API and send one authenticated administrative bootstrap request to `POST /api/auth/register` with a unique username, email, and strong password. The endpoint returns access and refresh tokens; store them securely.
+3. Start/restart the API and send one registration request to `POST /api/auth/register` with a unique username, email, and strong password. This one-time bootstrap endpoint is not authenticated; its explicit environment flag and empty-database check gate access. The endpoint returns access and refresh tokens; store them securely.
 4. Immediately set `BOOTSTRAP_ADMIN_ENABLED=false` and restart the API service.
 5. Verify a second registration is rejected, then verify the new administrator can log in and access `GET /api/auth/me`.
 
