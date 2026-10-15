@@ -2,20 +2,30 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.permissions import AuthenticatedPrincipal, require_roles
 from app.db import get_db
 from app.models import Asset
 from app.schemas.assets import AssetCreate, AssetRead
 
 router = APIRouter(prefix="/assets", tags=["assets"])
+ASSET_READ_ROLES = ("ADMIN", "OPERATOR", "VIEWER", "AUDITOR")
+ASSET_WRITE_ROLES = ("ADMIN", "OPERATOR")
 
 
 @router.get("", response_model=list[AssetRead])
-def list_assets(db: Session = Depends(get_db)) -> list[Asset]:
+def list_assets(
+    db: Session = Depends(get_db),
+    _principal: AuthenticatedPrincipal = Depends(require_roles(*ASSET_READ_ROLES)),
+) -> list[Asset]:
     return list(db.scalars(select(Asset).order_by(Asset.id.desc()).limit(500)))
 
 
 @router.post("", response_model=AssetRead, status_code=201)
-def create_asset(payload: AssetCreate, db: Session = Depends(get_db)) -> Asset:
+def create_asset(
+    payload: AssetCreate,
+    db: Session = Depends(get_db),
+    _principal: AuthenticatedPrincipal = Depends(require_roles(*ASSET_WRITE_ROLES)),
+) -> Asset:
     if db.scalar(select(Asset).where(Asset.asset_tag == payload.asset_tag)):
         raise HTTPException(status_code=409, detail="asset_tag already exists")
     asset = Asset(**payload.model_dump())
@@ -26,7 +36,11 @@ def create_asset(payload: AssetCreate, db: Session = Depends(get_db)) -> Asset:
 
 
 @router.get("/{asset_id}", response_model=AssetRead)
-def get_asset(asset_id: int, db: Session = Depends(get_db)) -> Asset:
+def get_asset(
+    asset_id: int,
+    db: Session = Depends(get_db),
+    _principal: AuthenticatedPrincipal = Depends(require_roles(*ASSET_READ_ROLES)),
+) -> Asset:
     asset = db.get(Asset, asset_id)
     if asset is None:
         raise HTTPException(status_code=404, detail="asset not found")
