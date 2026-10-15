@@ -85,7 +85,7 @@ class AssetLifecycleHistory(Base):
     changed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
     reason: Mapped[str | None] = mapped_column(Text)
     changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
-    __table_args__ = (Index("ix_lifecycle_asset_time", "asset_id", "changed_at"))
+    __table_args__ = (Index("ix_lifecycle_asset_time", "asset_id", "changed_at"),)
 
 
 class AuditLog(Base):
