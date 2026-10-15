@@ -8,7 +8,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \$\$POSTGRES_USER -d \$\$POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U \\$\\$POSTGRES_USER -d \\$\\$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -21,9 +21,11 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-it_asset_manager}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-it_asset_manager}
       REDIS_URL: redis://redis:6379/0
-      JWT_SECRET: ${JWT_SECRET:-change-this-in-production}
+      JWT_SECRET: ${JWT_SECRET:-change-this-in-development}
+      BOOTSTRAP_ADMIN_ENABLED: ${BOOTSTRAP_ADMIN_ENABLED:-false}
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,8 +40,10 @@ services:
       dockerfile: Dockerfile
     command: celery -A app.workers.celery_app.celery_app worker --loglevel=INFO
     environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-it_asset_manager}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-it_asset_manager}
       REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-change-this-in-development}
     depends_on:
       postgres:
         condition: service_healthy
