@@ -1,5 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from app.core.permissions import AuthenticatedPrincipal, require_roles
 from app.discovery.connectors import ManualConnector
 from app.discovery.service import DiscoveryService
 from app.schemas.discovery import ManualDiscoveryRequest
@@ -9,7 +10,10 @@ service = DiscoveryService()
 
 
 @router.post("/preview")
-def preview_discovery(payload: ManualDiscoveryRequest) -> dict:
+def preview_discovery(
+    payload: ManualDiscoveryRequest,
+    _principal: AuthenticatedPrincipal = Depends(require_roles("ADMIN", "OPERATOR")),
+) -> dict:
     observations = service.collect(ManualConnector(payload.fields))
     return {
         "source": "MANUAL",
